@@ -1,0 +1,140 @@
+﻿@{
+    Layout = "_LayoutMonitoring";
+    ViewData["Title"] = "Monitoring";
+}
+
+<div class="monitor-logo">
+   
+    <h3>
+        <img width="50px" height="50px" src="/img/logo.png" />
+        Fire Monitor
+    </h3>
+
+    <form method="post" action="/logout">
+        <input value="Log Out" type="submit" />
+    </form>
+
+</div>
+ 
+<h4>Info</h4>
+<hr />
+<span class="badge bg-warning text-dark">HOST</span>
+<span class="badge bg-warning text-dark">@ViewBag.HOST</span>
+
+<br />
+<span class="badge bg-warning text-dark">DATABASE</span>
+<span class="badge bg-warning text-dark">@ViewBag.DATABASE</span>
+
+<br />
+<span class="badge bg-warning text-dark">TOTAL MEMORY USED </span>
+<span class="badge bg-warning text-dark">@ViewBag.MEMORY_USED</span>
+
+<br />
+<br />
+<h4>Clients</h4>
+<hr />
+
+<table id="table" class="table datatable display compact">
+    <thead>
+    <th>ATTACHMENT ID</th>
+    <th>REMOTE ADDRESS</th>
+    <th>REMOTE HOST</th>
+    <th>REMOTE OS USER</th>
+    <th>USED RAM</th>
+    <th>USER</th>
+    <th>TIMESTAMP</th>
+    <th>DETAILS</th>
+    <th>KICK</th>
+    </thead>
+
+    <tbody>
+        @foreach (var attachment in ViewBag.MON_ATTACHMENTS)
+        {
+            <tr>
+                <td data-label="ATTACHMENT ID">@attachment.a.MON_ATTACHMENT_ID</td>
+                <td data-label="REMOTE ADDRESS">@attachment.a.MON_REMOTE_ADDRESS</td>
+                <td data-label="REMOTE HOST">@attachment.a.MON_REMOTE_HOST</td>
+                <td data-label="REMOTE OS USER">@attachment.a.MON_REMOTE_OS_USER</td>
+                <td data-label="USED RAM">@Math.Round((Convert.ToDecimal(attachment.m.MON_MEMORY_USED) / 1024 / 1024), 2) MB</td>
+                <td data-label="USER">@attachment.a.MON_USER</td>
+                <td data-label="TIMESTAMP">@attachment.a.MON_TIMESTAMP</td>
+                <td>
+                    <input type="button" data-bs-toggle="modal" data-bs-target="@String.Format("#modal{0}",attachment.a.MON_ATTACHMENT_ID)" value="Show" />
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="@String.Format("modal{0}",attachment.a.MON_ATTACHMENT_ID)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">ATTACHMENT ID @attachment.a.MON_ATTACHMENT_ID</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                    @if (attachment.a.MON_REMOTE_PROCESS != null)
+                                    {
+                                        <span class="badge bg-warning text-dark">REMOTE PID</span>
+                                        <br />
+                                        <span class="badge bg-warning text-dark">@attachment.a.MON_REMOTE_PID</span>
+                                        <br />
+                                        <br />
+                                        <span class="badge bg-warning text-dark">REMOTE PROCESS</span>
+                                        <br />
+                                        <span class="badge bg-warning text-dark">@attachment.a.MON_REMOTE_PROCESS</span>
+                                        <br />
+                                        <br />
+
+                                    }
+
+                                    @if (attachment.a.MON_REMOTE_VERSION != null)
+                                    {
+                                        <span class="badge bg-warning text-dark">REMOTE VERSION</span>
+                                        <br />
+                                        <span class="badge bg-warning text-dark">@attachment.a.MON_REMOTE_VERSION</span>
+                                        <br />
+                                        <br />
+                                    }
+
+                                    @if (attachment.a.MON_CLIENT_VERSION != null)
+                                    {
+                                        <span class="badge bg-warning text-dark">CLIENT VERSION</span>
+                                        <br />
+                                        <span class="badge bg-warning text-dark">@attachment.a.MON_CLIENT_VERSION</span>
+                                        <br />
+                                        <br />
+                                    }
+
+
+
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="button" data-bs-dismiss="modal" value="Close">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--modal end-->
+
+                </td>
+
+                <td>
+                    <form action="/monitoring" method="post" onsubmit="@String.Format("return confirm('Are you sure you want to kick {0} ?')",attachment.a.MON_ATTACHMENT_ID)" >
+                        <input type="text" value="@attachment.a.MON_ATTACHMENT_ID" hidden name="MON_ATTACHMENT_ID" />
+                        <input type="submit" value="KICK" />
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts{
+    <script>$(document).ready(function () {
+            let dataTable = $('#table').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ]
+            });
+        });</script>
+}
